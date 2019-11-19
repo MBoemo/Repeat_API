@@ -1,9 +1,9 @@
 import Repeat_API as rep
 
 reference = '/home/michael/data/genomes/SacCer3.fasta'#'simple.fasta'
-query = 'GGGT'
+query = 'A'
 lookOnRevComplement = True
-minimumRepeatLength = None #should be none or positive int
+minimumRepeatLength = 30 #should be none or positive int
 
 fasta = rep.IO(reference)
 info = rep.findRepeats(fasta,query,lookOnRevComplement)

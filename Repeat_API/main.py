@@ -29,6 +29,7 @@ class ParsedFasta():
 		self.genome = refFilename
 		self.parsedFasta = name2seq
 
+
 def reverseComplement(seq):
 	newSeq = ''
 	for s in seq:
@@ -73,12 +74,13 @@ def findRepeats(pfasta,repeat,useRC):
 				start = idx_next	
 			idx = idx_next
 
-	if useRC:
+	if useRC and repeat != reverseComplement(repeat):
 		bedTupesRC = []
+		repeat = reverseComplement(repeat)
 		for contigName in pfasta.parsedFasta:
+
 			seq = pfasta.parsedFasta[contigName]
 			pos = 0
-			repeat = reverseComplement(repeat)
 			idx = seq.find(repeat,0)
 			start = idx
 			while idx != -1:
@@ -86,7 +88,8 @@ def findRepeats(pfasta,repeat,useRC):
 				if idx_next - idx != len(repeat):
 					end = idx+len(repeat)
 					bedTupesRC.append((contigName,start,end,'complement'))
-					start = idx_next	
+					start = idx_next
+
 				idx = idx_next
 		bedTuples += bedTupesRC
 
