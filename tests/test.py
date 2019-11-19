@@ -1,7 +1,7 @@
 import Repeat_API as rep
 
-reference = '/home/michael/data/genomes/SacCer3.fasta'#'simple.fasta'
-query = 'AT'
+reference = 'simple.fasta'#'/home/michael/data/genomes/SacCer3.fasta'
+query = 'GGC'
 lookOnRevComplement = True
 minimumRepeatLength = None #should be none or positive int
 

@@ -10,6 +10,7 @@
 import warnings
 import sys
 import re
+import copy
 from Bio import SeqIO
 import matplotlib
 matplotlib.use('Agg')
@@ -58,10 +59,11 @@ def IO(filename):
 
 def findRepeats(pfasta,repeat,useRC):
 
+	repeat = copy.deepcopy(repeat).upper()
 	bedTuples = []
 	for contigName in pfasta.parsedFasta:
 		seq = pfasta.parsedFasta[contigName]
-		for match in re.finditer(repeat+'+',seq):
+		for match in re.finditer('('+repeat+')+',seq):
 			bedTuples.append((contigName,match.start(0),match.end(0),'template'))
 
 	if useRC and repeat != reverseComplement(repeat):
@@ -69,7 +71,7 @@ def findRepeats(pfasta,repeat,useRC):
 		rcRepeat = reverseComplement(repeat)
 		for contigName in pfasta.parsedFasta:
 			seq = pfasta.parsedFasta[contigName]
-			for match in re.finditer(rcRepeat+'+',seq):
+			for match in re.finditer('('+rcRepeat+')+',seq):
 				bedTuplesRC.append((contigName,match.start(0),match.end(0),'complement'))
 		bedTuples += bedTuplesRC
 
