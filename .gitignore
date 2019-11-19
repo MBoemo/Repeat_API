@@ -1,0 +1,6 @@
+*.bed
+*.pdf
+*.png
+*.pyc
+build/*
+build
