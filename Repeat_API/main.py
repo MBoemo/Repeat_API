@@ -9,8 +9,7 @@
 
 import warnings
 import sys
-import math
-import numpy as np
+import re
 from Bio import SeqIO
 import matplotlib
 matplotlib.use('Agg')
@@ -58,40 +57,21 @@ def IO(filename):
 
 
 def findRepeats(pfasta,repeat,useRC):
-	
-	repeat = repeat.upper()
-	bedTuples = []	
+
+	bedTuples = []
 	for contigName in pfasta.parsedFasta:
 		seq = pfasta.parsedFasta[contigName]
-		pos = 0
-		idx = seq.find(repeat,0)
-		start = idx
-		while idx != -1:
-			idx_next = seq.find(repeat,idx+len(repeat))
-			if idx_next - idx != len(repeat):
-				end = idx+len(repeat)
-				bedTuples.append((contigName,start,end,'template'))
-				start = idx_next	
-			idx = idx_next
+		for match in re.finditer(repeat+'+',seq):
+			bedTuples.append((contigName,match.start(0),match.end(0),'template'))
 
 	if useRC and repeat != reverseComplement(repeat):
-		bedTupesRC = []
-		repeat = reverseComplement(repeat)
+		bedTuplesRC = []
+		rcRepeat = reverseComplement(repeat)
 		for contigName in pfasta.parsedFasta:
-
 			seq = pfasta.parsedFasta[contigName]
-			pos = 0
-			idx = seq.find(repeat,0)
-			start = idx
-			while idx != -1:
-				idx_next = seq.find(repeat,idx+len(repeat))
-				if idx_next - idx != len(repeat):
-					end = idx+len(repeat)
-					bedTupesRC.append((contigName,start,end,'complement'))
-					start = idx_next
-
-				idx = idx_next
-		bedTuples += bedTupesRC
+			for match in re.finditer(rcRepeat+'+',seq):
+				bedTuplesRC.append((contigName,match.start(0),match.end(0),'complement'))
+		bedTuples += bedTuplesRC
 
 	return BedInfo(pfasta.genome,repeat,bedTuples)
 
