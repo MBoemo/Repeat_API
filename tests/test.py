@@ -1,11 +1,8 @@
 import Repeat_API as rep
 
-reference = 'simple.fasta'#'/home/michael/data/genomes/SacCer3.fasta'
-query = 'GGC'
+reference = '/home/michael/data/genomes/SacCer3.fasta'#'simple.fasta'#
+query = 'CGG'
 lookOnRevComplement = True
 minimumRepeatLength = None #should be none or positive int
 
-fasta = rep.IO(reference)
-info = rep.findRepeats(fasta,query,lookOnRevComplement)
-rep.writeBed(query+'.bed',info,minimumRepeatLength)
-rep.freqPlot(query+'.pdf',info)
+bed = rep.parseRepeats(reference,query,lookOnRevComplement,minimumRepeatLength)
