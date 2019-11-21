@@ -46,56 +46,66 @@ def writeBedHeader(f,genome,repeat,minLength):
 	f.write('#contig\tstart\tend\trepeat length\tstrand\n')
 
 
-def appendBed(f,bedTuples,minLength):
-
-	for t in bedTuples:
-
-		if minLength is not None:
-			if t[2]-t[1] >= minLength:
-				f.write(str(t[0]) + '\t' + str(t[1]) + '\t' + str(t[2]) + '\t' + str(t[2]-t[1])+'\t'+t[3]+'\n')
-		else:
-			f.write(str(t[0]) + '\t' + str(t[1]) + '\t' + str(t[2]) + '\t' + str(t[2]-t[1])+'\t'+t[3]+'\n')
-
-
 def parseRepeats(filename,repeat,useRC,minLength):
 
 	f = open(repeat+'.bed','w')
 	writeBedHeader(f,filename,repeat,minLength)
-	lengths = []
+	lengths = {}
 
 	fasta_sequences = SeqIO.index(filename,'fasta')
 	for contig in fasta_sequences:
 
-		bedTuples = findRepeats(contig,str(fasta_sequences[contig].seq).upper(),repeat,useRC)
-		for t in bedTuples:
-			lengths.append(t[2]-t[1])
-		appendBed(f,bedTuples,minLength)
+		seq = str(fasta_sequences[contig].seq).upper()
+
+		repeat = copy.deepcopy(repeat).upper()
+
+		for match in re.finditer('('+repeat+')+',seq):
+
+			if minLength is not None:
+				if match.end(0)-match.start(0) >= minLength:
+					f.write(str(contig) + '\t' + str(match.start(0)) + '\t' + str(match.end(0)) + '\t' + str(match.end(0)-match.start(0))+'\ttemplate\n')
+			else:
+				f.write(str(contig) + '\t' + str(match.start(0)) + '\t' + str(match.end(0)) + '\t' + str(match.end(0)-match.start(0))+'\ttemplate\n')
+
+			key = match.end(0)-match.start(0)
+			if key in lengths:
+				lengths[key] += 1
+			else:
+				lengths[key] = 1
+
+
+
+		if useRC and repeat != reverseComplement(repeat):
+
+			rcRepeat = reverseComplement(repeat)
+			for match in re.finditer('('+rcRepeat+')+',seq):
+
+				if minLength is not None:
+					if match.end(0)-match.start(0) >= minLength:
+						f.write(str(contig) + '\t' + str(match.start(0)) + '\t' + str(match.end(0)) + '\t' + str(match.end(0)-match.start(0))+'\tcomplement\n')
+				else:
+					f.write(str(contig) + '\t' + str(match.start(0)) + '\t' + str(match.end(0)) + '\t' + str(match.end(0)-match.start(0))+'\tcomplement\n')
+
+				key = match.end(0)-match.start(0)
+				if key in lengths:
+					lengths[key] += 1
+				else:
+					lengths[key] = 1
 	f.close()
 	freqPlot(repeat+'.pdf',repeat,lengths)
 
 
-def findRepeats(contig,seq,repeat,useRC):
-
-	repeat = copy.deepcopy(repeat).upper()
-	bedTuples = []
-
-	for match in re.finditer('('+repeat+')+',seq):
-		bedTuples.append((contig,match.start(0),match.end(0),'template'))
-
-	if useRC and repeat != reverseComplement(repeat):
-		bedTuplesRC = []
-		rcRepeat = reverseComplement(repeat)
-		for match in re.finditer('('+rcRepeat+')+',seq):
-			bedTuplesRC.append((contig,match.start(0),match.end(0),'complement'))
-		bedTuples += bedTuplesRC
-
-	return bedTuples
-
-
 def freqPlot(outFilename,repeat,lengths):
 	
+	#reshape
+	x = []
+	heights = []
+	for key in sorted(lengths.keys()):
+		x.append(key)
+		heights.append(lengths[key])
+
 	plt.figure()
-	plt.hist(lengths,25,log=True)
+	plt.bar(x,heights,log=True)
 	plt.xlabel('Repeat Length')
 	plt.ylabel('Count')
 	plt.title('Distribution of '+repeat+' Repeat Lengths')
